@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Datadog Monitor Coverage Lab — Kinetic Gain operator surface</title>
+<meta name="description" content="Operator surface for Datadog monitor coverage gaps, dashboard-to-monitor dependency lanes, alerting blind-spot evidence, and SLO/SLI route posture across services." />
+<meta name="theme-color" content="#0A0B11" />
+<link rel="canonical" href="https://ddmonitors.kineticgain.com/" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Datadog Monitor Coverage Lab" />
+<meta property="og:description" content="Operator surface for Datadog monitor coverage gaps, dashboard-to-monitor dependency lanes, alerting blind-spot evidence, and SLO/SLI route posture across services." />
+<meta property="og:url" content="https://ddmonitors.kineticgain.com/" />
+<style>
+  :root {
+    --onyx:#0A0B11;--ground:#0A0B11;--ink:#F5F2EB;--ink-dim:#9AA1AD;--ink-faint:#565C68;
+    --surface:rgba(255,255,255,.025);--surface-2:rgba(255,255,255,.045);
+    --line:rgba(255,255,255,.08);--line-soft:rgba(255,255,255,.05);
+    --emerald:#34D399;--cyan:#22D3EE;--violet:#A78BFA;--amber:#FBBF24;--coral:#FB7185;
+    --ok:#69E3B3;--warn:#FBBF24;--high:#FB7185;--crit:#FF6B95;
+    --signal:#632CA6;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    --mono:ui-monospace,"SFMono-Regular",Menlo,"Cascadia Code",Consolas,monospace;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --radius:14px;--maxw:1240px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--ground);color:var(--ink);font-family:var(--font);line-height:1.5;letter-spacing:-.011em;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative;min-height:100vh}
+  body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(900px 600px at 12% -5%,rgba(124,92,232,.14),transparent 60%),radial-gradient(800px 600px at 92% 8%,rgba(34,211,238,.09),transparent 55%),radial-gradient(1000px 700px at 70% 100%,rgba(71,91,107,.16),transparent 60%),linear-gradient(180deg,#0A0B11 0%,#0C0E16 55%,#0A0C13 100%)}
+  a{color:inherit}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;position:relative;z-index:2}
+  main{position:relative;z-index:2}
+
+  header.site{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--ground) 72%,transparent);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid var(--line-soft)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:68px;gap:24px}
+  .brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink);flex-shrink:0;font-weight:600;font-size:16px;letter-spacing:-.03em}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--signal);box-shadow:0 0 14px color-mix(in srgb,var(--signal) 60%,transparent)}
+  .brand .dim{color:var(--ink-dim);font-weight:400}
+  .nav-links{display:flex;align-items:center;gap:22px;flex-wrap:nowrap;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim)}
+  .nav-links a{text-decoration:none;color:inherit;transition:color .2s var(--ease)}
+  .nav-links a:hover{color:var(--ink)}
+  @media (max-width:720px){.nav-links{display:none}}
+
+  .hero{padding:64px 0 36px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);display:inline-flex;align-items:center;gap:10px;margin-bottom:18px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--signal);box-shadow:0 0 12px color-mix(in srgb,var(--signal) 70%,transparent)}
+  h1{font-size:clamp(32px,4.6vw,54px);font-weight:600;line-height:1.05;letter-spacing:-.035em;margin:0 0 18px;max-width:24ch}
+  h1 .grad{background:linear-gradient(110deg,var(--signal),var(--cyan) 55%,var(--emerald));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{font-size:clamp(15px,1.4vw,17px);color:var(--ink-dim);line-height:1.6;max-width:64ch}
+  .hero-sub strong{color:var(--ink);font-weight:500}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:32px 0 0}
+  .stat{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--radius);padding:18px 20px}
+  .stat-num{font-size:28px;font-weight:600;letter-spacing:-.025em;color:var(--ink);display:block;line-height:1}
+  .stat-num.ok{color:var(--ok)}.stat-num.warn{color:var(--warn)}.stat-num.crit{color:var(--high)}
+  .stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-top:10px;display:block}
+  .stat-sub{font-size:12px;color:var(--ink-dim);margin-top:4px}
+
+  section.lane{padding:42px 0}
+  section.lane h2{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:18px}
+  section.lane .lane-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
+
+  .tbl-wrap{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--radius);overflow:auto}
+  table.data{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+  table.data th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);font-weight:500;background:rgba(0,0,0,.18)}
+  table.data td{padding:14px 16px;border-bottom:1px solid var(--line-soft);color:var(--ink-dim);vertical-align:top}
+  table.data tr:last-child td{border-bottom:none}
+  table.data td.name{color:var(--ink);font-weight:500}
+  table.data td .mono,table.data td.mono{font-family:var(--mono);font-size:12px;color:var(--ink-dim)}
+  table.data tr:hover td{background:rgba(255,255,255,.02)}
+
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;white-space:nowrap}
+  .pill.ok{background:rgba(105,227,179,.12);color:var(--ok);border:1px solid rgba(105,227,179,.25)}
+  .pill.warn{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.25)}
+  .pill.high{background:rgba(251,113,133,.13);color:var(--high);border:1px solid rgba(251,113,133,.28)}
+  .pill.crit{background:rgba(255,107,149,.18);color:var(--crit);border:1px solid rgba(255,107,149,.4)}
+  .pill.info{background:rgba(34,211,238,.1);color:var(--cyan);border:1px solid rgba(34,211,238,.22)}
+  .pill.neutral{background:rgba(255,255,255,.04);color:var(--ink-dim);border:1px solid var(--line)}
+
+  footer.site{padding:48px 0 64px;border-top:1px solid var(--line-soft);margin-top:64px;color:var(--ink-faint);font-size:13px}
+  footer.site .row{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:baseline}
+  footer.site .mono{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
+  footer.site a{color:var(--ink-dim);text-decoration:none;border-bottom:1px solid var(--line-soft);transition:color .2s var(--ease),border-color .2s var(--ease)}
+  footer.site a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <nav class="nav">
+      <a href="/" class="brand">
+        <span class="dot"></span>
+        <span>Kinetic Gain <span class="dim">/ Datadog</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="#posture">Posture</a>
+        <a href="#lanes">Lanes</a>
+        <a href="https://github.com/mizcausevic-dev/datadog-monitor-coverage-lab">GitHub</a>
+        <a href="https://kineticgain.com/">Apex</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">
+        <span class="dot"></span>
+        <span>Observability / SRE · v1.0-prod · synthetic data only</span>
+      </div>
+      <h1>Datadog Monitor Coverage <span class="grad">Lab</span></h1>
+      <p class="hero-sub">Observability gap detection, monitor dependency posture, and alerting blind-spot evidence. <strong>Read-only operator surface</strong> over the Datadog primitives — no production credentials, no actions, no decisions made on your behalf. Built for the conversation that happens <em>before</em> the action.</p>
+      <div class="stats" id="posture">
+        <div class="stat">
+          <span class="stat-num ok">184</span>
+          <span class="stat-label">Active monitors</span>
+          <span class="stat-sub">across 47 services</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num warn">12</span>
+          <span class="stat-label">Coverage gaps</span>
+          <span class="stat-sub">4 critical SLI · 8 supporting</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num warn">3</span>
+          <span class="stat-label">Blind-spot incidents</span>
+          <span class="stat-sub">rolling 30d · all closed</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num ok">94.7%</span>
+          <span class="stat-label">SLI coverage</span>
+          <span class="stat-sub">of tier-1 services</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lane" id="lanes">
+    <div class="wrap">
+      <div class="lane-eyebrow">Lane · 01</div>
+      <h2>Coverage gaps (open)</h2>
+      <div class="tbl-wrap">
+        <table class="data">
+          <thead><tr><th>Service</th><th>Gap type</th><th>SLI lane</th><th>Impact</th><th>Owner</th></tr></thead>
+          <tbody>
+            <tr><td class="name">payments-gateway</td><td>p99 latency monitor missing</td><td><span class="pill crit">tier-1 SLI</span></td><td>HIGH</td><td>platform-eng</td></tr>
+            <tr><td class="name">auth-provider</td><td>error-rate threshold stale</td><td><span class="pill crit">tier-1 SLI</span></td><td>HIGH</td><td>identity-eng</td></tr>
+            <tr><td class="name">fraud-scoring</td><td>no dependency monitor</td><td><span class="pill high">tier-2 SLI</span></td><td>MED</td><td>ml-eng</td></tr>
+            <tr><td class="name">reporting-api</td><td>saturation monitor missing</td><td><span class="pill warn">tier-3 SLI</span></td><td>LOW</td><td>data-eng</td></tr>
+            <tr><td class="name">webhook-ingestion</td><td>queue depth not monitored</td><td><span class="pill warn">supporting</span></td><td>LOW</td><td>platform-eng</td></tr>
+            <tr><td class="name">feature-flag-service</td><td>cache-hit ratio missing</td><td><span class="pill warn">supporting</span></td><td>LOW</td><td>platform-eng</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="lane">
+    <div class="wrap">
+      <div class="lane-eyebrow">Lane · 02</div>
+      <h2>Tier-1 service SLI posture</h2>
+      <div class="tbl-wrap">
+        <table class="data">
+          <thead><tr><th>Service</th><th>SLO target</th><th>Trailing 30d</th><th>Monitors</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="name">payments-gateway</td><td>99.95% availability</td><td>99.97%</td><td>8</td><td><span class="pill ok">healthy</span></td></tr>
+            <tr><td class="name">auth-provider</td><td>99.99% availability</td><td>99.98%</td><td>11</td><td><span class="pill warn">at threshold</span></td></tr>
+            <tr><td class="name">fraud-scoring</td><td>p99 &lt; 250ms</td><td>231ms</td><td>6</td><td><span class="pill ok">healthy</span></td></tr>
+            <tr><td class="name">webhook-ingestion</td><td>99.9% delivery</td><td>99.94%</td><td>5</td><td><span class="pill ok">healthy</span></td></tr>
+            <tr><td class="name">checkout-orchestrator</td><td>p95 &lt; 800ms</td><td>742ms</td><td>9</td><td><span class="pill ok">healthy</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="lane">
+    <div class="wrap">
+      <div class="lane-eyebrow">About this surface</div>
+      <h2>What this is — and what it isn't</h2>
+      <p class="hero-sub" style="max-width:72ch">
+        <strong>What it is:</strong> a read-only operator surface that sits next to Datadog and answers
+        the four questions every operating exec asks before they decide — <em>what's open, who owns it, what's it
+        cost, and where's the evidence</em>. Synthetic data only — the structure is what's portable; the numbers
+        in this preview are made up.
+      </p>
+      <p class="hero-sub" style="max-width:72ch;margin-top:18px">
+        <strong>What it isn't:</strong> not a Datadog replacement, not a control plane, not a
+        write-path. The Datadog platform stays the source of truth. This surface just makes the
+        operating posture <em>legible</em> — to the operator, the auditor, the board — without forcing
+        them to pivot through a vendor console first.
+      </p>
+      <p class="hero-sub" style="max-width:72ch;margin-top:18px">
+        <strong>Compliance framing:</strong> readiness/evidence/posture/controls language only. Never
+        "compliant" or "certified" — those words require an external audit and current attestation,
+        which the surface itself does not provide.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <strong style="color:var(--ink)">Datadog Monitor Coverage Lab</strong> · <span class="mono">v1.0-prod</span> · AGPL-3.0-or-later<br/>
+        Built on the Kinetic Gain operator-surface template. <a href="https://kineticgain.com/">kineticgain.com</a> ·
+        <a href="https://github.com/mizcausevic-dev/datadog-monitor-coverage-lab">source</a> ·
+        <a href="/.well-known/security.txt">security</a>
+      </div>
+      <div class="mono">Synthetic data · No production credentials · No write-path</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
