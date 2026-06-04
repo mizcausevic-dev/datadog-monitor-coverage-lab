@@ -2,7 +2,7 @@
 
 Operator surface for Datadog monitor coverage gaps, dashboard-to-monitor dependency lanes, alerting blind-spot evidence, and SLO/SLI route posture across services.
 
-- **Live:** [`https://ddmonitors.kineticgain.com/`](https://ddmonitors.kineticgain.com/) _(pending Hostinger subdomain provisioning)_
+- **Live:** [`https://ddmonitors.kineticgain.com/`](https://ddmonitors.kineticgain.com/)
 - **Lane:** Observability / SRE · Datadog signal
 - **Repo:** [`mizcausevic-dev/datadog-monitor-coverage-lab`](https://github.com/mizcausevic-dev/datadog-monitor-coverage-lab)
 
