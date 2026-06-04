@@ -27,7 +27,30 @@ jobs:
           grep -q "Datadog Monitor Coverage Lab" index.html || (echo "FAIL: index.html missing title" && exit 1)
           echo "OK: verified"
 
-      - name: FTP Deploy
+      - name: FTP Deploy (attempt 1)
+        id: ftp_first
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: /ddmonitors/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/node_modules/**
+            README.md
+            CHANGELOG.md
+            LICENSE
+            SECURITY.md
+            CODE_OF_CONDUCT.md
+            .gitignore
+
+      - name: Retry FTP Deploy if first attempt failed
+        if: steps.ftp_first.outcome == 'failure'
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server: ${{ secrets.FTP_SERVER }}
